@@ -1,10 +1,6 @@
-import { ApolloServer } from 'apollo-server-express';
-import { startStandaloneServer } from '@apollo/server/standalone'
-import express from "express";
+import { ApolloServer } from '@apollo/server';
+import { startStandaloneServer } from '@apollo/server/standalone';
 
-// A schema is a collection of type definitions (hence "typeDefs")
-// that together define the "shape" of queries that are executed against
-// your data.
 const typeDefs = `#graphql
 # Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
 
@@ -14,14 +10,10 @@ type Book {
     author: String
 }
 
-# The "Query" type is special: it lists all of the available queries that
-# clients can execute, along with the return type for each. In this
-# case, the "books" query returns an array of zero or more Books (defined above).
 type Query {
     books: [Book]
 }
 `;
-
 const books = [
     {
         title: 'The Awakening',
@@ -32,9 +24,6 @@ const books = [
         author: 'Paul Auster',
     },
 ];
-
-// Resolvers define the technique for fetching the types defined in the
-// schema. This resolver retrieves books from the "books" array above.
 const resolvers = {
     Query: {
         books: () => books,
@@ -44,15 +33,12 @@ const resolvers = {
 export default async function () {
     const server = new ApolloServer({
         typeDefs,
-        resolvers
+        resolvers,
     });
-    await server.start();
 
-    const app = express();
+    const { url } = await startStandaloneServer(server, {
+        listen: { port: 4000 },
+    });
 
-    server.applyMiddleware({ app });
-
-    await app.listen({ port: 4000 });
-
-    console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`);
+    console.log(`🚀  Server ready at: ${url}`);
 }
