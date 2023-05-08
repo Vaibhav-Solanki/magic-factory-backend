@@ -1,5 +1,6 @@
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
+import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
 
 const typeDefs = `#graphql
 # Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
@@ -34,6 +35,7 @@ export default async function () {
     const server = new ApolloServer({
         typeDefs,
         resolvers,
+        plugins: [ApolloServerPluginInlineTrace()],
     });
 
     const { url } = await startStandaloneServer(server, {
