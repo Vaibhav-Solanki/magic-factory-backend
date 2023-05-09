@@ -9,7 +9,8 @@ export default function (typeDefs, resolvers) {
     plugins: [ApolloServerPluginInlineTrace()]
   })
 
-  return startStandaloneServer(server, {
-    listen: { port: 4000 }
+  startStandaloneServer(server, {
+    listen: { port: process.env.PORT }
   })
+  return server
 }

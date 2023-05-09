@@ -1,3 +1,3 @@
-export function createUser (parent, { input }) {
+export default function (parent, { input }) {
   return input
 }

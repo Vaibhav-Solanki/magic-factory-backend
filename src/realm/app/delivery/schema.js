@@ -1,3 +1,4 @@
+export const typeDefs = `#graphql
 type User {
     id: ID!
     name: String!
@@ -13,3 +14,4 @@ type Query {
 type Mutation {
     createUser(input: CreateUserInput!): User
 }
+`

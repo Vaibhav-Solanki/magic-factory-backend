@@ -1,5 +1,9 @@
 import fs from 'fs'
 import path from 'path'
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader'
+import { mergeTypeDefs } from '@graphql-tools/merge'
+import { loadSchema } from '@graphql-tools/load'
+import { typeDefs } from './app/delivery/schema.js'
 
 const getDir = (directoryPath) => {
   return new Promise((resolve, reject) => {
@@ -20,29 +24,45 @@ const getDir = (directoryPath) => {
 }
 
 // Function to fetch resolvers from all modules
-export async function resolvers () {
+export async function fetchResolvers (authWrapper) {
   const cwd = path.join(process.cwd(), 'src', 'realm')
   const realms = await getDir(cwd)
 
   return await realms.reduce(async (acc, realm) => {
-    acc[realm] = {}
     const modulesDir = path.join(cwd, realm)
     const modules = await getDir(modulesDir)
     for (const module of modules) {
-      acc[realm][module] = { Mutation: {}, Query: {} }
       const mutationDir = path.join(modulesDir, module, 'mutation')
       const mutations = fs.readdirSync(mutationDir)
       for (const mutation of mutations) {
-        const resolver = await import(path.join(mutationDir, mutation))
-        acc[realm][module].Mutation = { ...resolver, ...(acc[realm][module].Mutation) }
+        const key = mutation.split('.')[0]
+        const resolver = (await import(path.join(mutationDir, mutation))).default
+        acc.Mutation[key] = authWrapper(resolver, realm, module)
       }
       const queryDir = path.join(modulesDir, module, 'query')
       const queries = fs.readdirSync(queryDir)
       for (const query of queries) {
-        const resolver = await import(path.join(queryDir, query))
-        acc[realm][module].Query = { ...resolver, ...(acc[realm][module].Query) }
+        const key = query.split('.')[0]
+        const resolver = (await import(path.join(queryDir, query))).default
+        acc.Query[key] = authWrapper(resolver, realm, module)
       }
     }
     return acc
-  }, {})
+  }, { Mutation: {}, Query: {} })
+}
+
+export async function fetchSchema () {
+  const cwd = path.join(process.cwd(), 'src', 'realm')
+  const realms = await getDir(cwd)
+
+  return await realms.reduce(async (acc, realm) => {
+    const modulesDir = path.join(cwd, realm)
+    const modules = await getDir(modulesDir)
+    for (const module of modules) {
+      const schemaDir = path.join(modulesDir, module, 'schema.js')
+      const { typeDefs } = await import(schemaDir)
+      acc = mergeTypeDefs([acc, typeDefs])
+    }
+    return acc
+  }, '')
 }
