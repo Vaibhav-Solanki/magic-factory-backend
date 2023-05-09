@@ -1,3 +1,3 @@
-import server from './src/server/index.js'
+import app from './src/index.js'
 
-server()
+app()
