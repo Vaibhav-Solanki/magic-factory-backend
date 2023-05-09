@@ -8,7 +8,7 @@ export default function createKnexClient () {
     connection: {
       host: process.env.PG_HOST,
       port: process.env.PG_PORT,
-      user: process.env.USER,
+      user: process.env.PG_USER,
       password: process.env.PG_PASS,
       database: 'magic_factory'
     },
